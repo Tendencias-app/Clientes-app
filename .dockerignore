@@ -1,0 +1,12 @@
+bin/
+obj/
+.vs/
+**/*.user
+**/*.vspscc
+*.suo
+*.userprefs
+_npm/
+node_modules/
+.DS_Store
+Dockerfile
+.dockerignore

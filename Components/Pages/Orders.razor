@@ -1,0 +1,60 @@
+﻿@page "/orders"
+<h3>Ordenes</h3>
+
+@if (orders == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Order id</th>
+                <th>Fecha</th>
+                <th>Precio</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in orders)
+            {
+                <tr>
+                    <td>@order.Orderid</td>
+                    <td>@order.OrderDate.ToShortDateString()</td>
+                    <td>@order.Price</td>
+                    <td>@order.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    private Order[]? orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate asynchronous loading to mock an API call
+        await Task.Delay(500);
+
+        var startDate = DateOnly.FromDateTime(DateTime.Now);
+        var ordersId = new[] { "EXac123", "EXac458", "YET7854", "AFDC785", "FDD448656", "DEsd448656", "ESCT78946" };
+        orders = ordersId.Select((id, index) => new Order
+        {
+            Orderid = id,
+            OrderDate = startDate.AddDays(-index),
+            Price = 100 + index * 10,
+            Status = index % 2 == 0 ? "Completed" : "Pending"
+        }).ToArray();
+    }
+
+    private record Order
+    {
+        public string Orderid { get; set; }
+        public DateOnly OrderDate { get; set; }
+        public decimal Price { get; set; }
+        public string Status { get; set; }
+    }
+}

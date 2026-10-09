@@ -1,0 +1,30 @@
+## .NET build output
+**/bin/
+**/obj/
+[Dd]ebug/
+[Rr]elease/
+[Aa]rtifacts/
+
+## Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Test and coverage output
+[Tt]est[Rr]esults/
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+
+## NuGet packages
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+
+## Publish output
+publish/
+**/publish/

@@ -1,0 +1,122 @@
+﻿
+@page "/catalog"
+<div class="row justify-content-center">
+    <h3>Catálogo de Vehiculos</h3>
+
+    <div class="col-md-8">
+        <EditForm  Model="@searchModel" OnValidSubmit="LoadCatalogAsync" FormName="catalogSearch">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">Marca</label>
+                    <InputText class="form-control" @bind-Value="searchModel.Marca" placeholder="Ej: Toyota" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Línea</label>
+                    <InputText class="form-control" @bind-Value="searchModel.Linea" placeholder="Ej: Corolla" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Modelo</label>
+                    <InputNumber TValue="int?" class="form-control" @bind-Value="searchModel.Modelo" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Fecha inicio</label>
+                    <InputDate TValue="DateTime?" class="form-control" @bind-Value="searchModel.FechaInicio" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Fecha final</label>
+                    <InputDate TValue="DateTime?" class="form-control" @bind-Value="searchModel.FechaFinal" />
+                </div>
+
+                <div class="col-md-1">
+                    <button class="btn btn-primary w-100" type="submit">Buscar</button>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+
+@if (catalog != null)
+{
+    <div class="row">
+        @foreach (var item in catalog)
+        {
+            <div class="col-md-4 mb-3 p-5" >
+                <div class="card">
+                    <img src="CarroImg.jpg" class="card-img-top" alt="cart logo"/>
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Marca @item.Linea</h5>
+                        <p class="card-text">Modelo: @item.Modelo</p>
+                        <p class="card-text">Precio: $@item.Precio.ToString("N0")</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    }
+    else if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">cargando...</span>
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+
+    private CartinCatalog[]? catalog;
+    private bool isLoading = false;
+
+    // Modelo del formulario de búsqueda
+    private SearchModel searchModel = new();
+
+    private class SearchModel
+    {
+        public string? Marca { get; set; }
+        public string? Linea { get; set; }
+        public int? Modelo { get; set; }
+        public DateTime? FechaInicio { get; set; }
+        public DateTime? FechaFinal { get; set; }
+    }
+
+    private async Task LoadCatalogAsync()
+    {
+        catalog = null;
+        isLoading = true;
+        // pausa para mostrar el efecto de carga
+        await Task.Delay(500);
+        catalog = new CartinCatalog[]
+        {
+            new CartinCatalog { Id = 1, Marca = "Toyota", Linea = "Corolla", Modelo = 2022, Precio = 20000 },
+            new CartinCatalog { Id = 2, Marca = "Honda", Linea = "Civic", Modelo = 2021, Precio = 22000 },
+            new CartinCatalog { Id = 3, Marca = "Ford", Linea = "Mustang", Modelo = 2023, Precio = 35000 },
+            new CartinCatalog { Id = 4, Marca = "Chevrolet", Linea = "Camaro", Modelo = 2022, Precio = 33000 },
+            new CartinCatalog { Id = 5, Marca = "Nissan", Linea = "Altima", Modelo = 2021, Precio = 25000 },
+            new CartinCatalog { Id = 6, Marca = "BMW", Linea = "3 Series", Modelo = 2023, Precio = 40000 },
+            new CartinCatalog { Id = 7, Marca = "Mercedes-Benz", Linea = "C-Class", Modelo = 2022, Precio = 42000 },
+            new CartinCatalog { Id = 8, Marca = "Audi", Linea = "A4", Modelo = 2021, Precio = 38000 },
+            new CartinCatalog { Id = 9, Marca = "Toyota", Linea = "GR86", Modelo = 2025, Precio = 27000 },
+            new CartinCatalog { Id = 10, Marca = "Hyundai", Linea = "Elantra", Modelo = 2022, Precio = 21000 }
+        };
+        isLoading = false;
+    }
+
+
+    private record CartinCatalog
+    {
+        public required int Id { get; set; }
+        public required string Marca { get; set; }
+        public required string Linea { get; set; }
+        public required short Modelo { get; set; }
+        public required decimal Precio { get; set; }
+    }
+
+}
