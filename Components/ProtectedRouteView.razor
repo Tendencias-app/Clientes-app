@@ -1,0 +1,35 @@
+@using CarsATTM_CustomerApp.Services
+@inject AuthSession AuthSession
+@inject NavigationManager NavigationManager
+
+@if (isPublicRoute || AuthSession.IsAuthenticated)
+{
+    <RouteView RouteData="RouteData" DefaultLayout="DefaultLayout" />
+}
+else
+{
+    <p class="text-center p-4">Redirigiendo al inicio de sesión...</p>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public RouteData RouteData { get; set; } = default!;
+
+    [Parameter]
+    public Type? DefaultLayout { get; set; }
+
+    private bool isPublicRoute;
+
+    protected override void OnParametersSet()
+    {
+        isPublicRoute = RouteData.PageType == typeof(Pages.Login);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!isPublicRoute && !AuthSession.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+    }
+}

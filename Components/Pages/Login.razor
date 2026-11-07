@@ -1,0 +1,82 @@
+@page "/login"
+@layout LoginLayout
+@using CarsATTM_CustomerApp.Services
+@inject ILoginService LoginService
+@inject AuthSession AuthSession
+@inject NavigationManager NavigationManager
+
+<PageTitle>Iniciar sesión</PageTitle>
+
+<div class="card shadow-sm" style="max-width: 420px; width: 100%;">
+    <div class="card-body p-4">
+        <div class="text-center mb-4">
+            <img src="logo.png" alt="CarsATTM Logo" width="190" height="100" class="img-fluid" />
+            <h1 class="h4 mt-3">Iniciar sesión</h1>
+        </div>
+
+        <EditForm Model="credentials" OnValidSubmit="SignInAsync" FormName="loginForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="userName" class="form-label">Usuario</label>
+                <InputText id="userName" class="form-control" @bind-Value="credentials.UserName" autocomplete="username" />
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Contraseña</label>
+                <InputText id="password" type="password" class="form-control" @bind-Value="credentials.Password" autocomplete="current-password" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="alert alert-danger" role="alert">@errorMessage</div>
+            }
+
+            <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+                @(isLoading ? "Validando..." : "Ingresar")
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private readonly LoginModel credentials = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task SignInAsync()
+    {
+        errorMessage = null;
+        isLoading = true;
+
+        try
+        {
+            var token = await LoginService.LoginAsync(
+                new LoginRequest(credentials.UserName, credentials.Password));
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                errorMessage = "El usuario o la contraseña no son válidos.";
+                return;
+            }
+
+            AuthSession.SignIn(token);
+            NavigationManager.NavigateTo("/");
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "No fue posible conectar con el servicio de autenticación.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private sealed class LoginModel
+    {
+        public string UserName { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}
