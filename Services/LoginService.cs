@@ -1,19 +1,17 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.Extensions.Options;
-
 namespace CarsATTM_CustomerApp.Services;
 
-public sealed class LoginService(HttpClient httpClient, IOptions<ApiOptions> options) : ILoginService
+public sealed class LoginService(HttpClient httpClient) : ILoginService
 {
-    private readonly string loginEndpoint = options.Value.LoginEndpoint;
+    private readonly string loginEndpoint = "api/auth/login";
 
     public async Task<string?> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         //mock temporal
         await Task.Delay(2000, cancellationToken);
 
-        return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEyMzQ1Njc4OSwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.WQzROFJ7I251UmKwPS1ayRrS02OlHqvt1nng-Q3PQdI";
+        return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEwMDEsIm5hbWUiOiJKb2huIERvZSIsImFkbWluIjp0cnVlLCJpYXQiOjE1MTYyMzkwMjJ9.EsmaXlSsONbYNacAH1rHedh4ji6_IDBrAukVvZvYFHs";
 
 
         using var response = await httpClient.PostAsJsonAsync(loginEndpoint, request, cancellationToken);
@@ -31,6 +29,6 @@ public sealed class LoginService(HttpClient httpClient, IOptions<ApiOptions> opt
 
 public sealed class ApiOptions
 {
-    public string BaseUrl { get; set; } = "https://localhost:5001/";
-    public string LoginEndpoint { get; set; } = "api/auth/login";
+    public string LoginBaseUrl { get; set; } = "https://localhost:5001/";
+    public string MultasBaseUrl { get; set; } = "https://localhost:5002/";
 }

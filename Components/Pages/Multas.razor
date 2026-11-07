@@ -1,0 +1,162 @@
+@page "/multas"
+@rendermode InteractiveServer
+@using CarsATTM_CustomerApp.Services
+@inject AuthSession AuthSession
+@inject IMultasClient MultasClient
+
+<PageTitle>Mis multas</PageTitle>
+
+<h1>Mis multas</h1>
+
+<button type="button"
+        class="btn btn-outline-primary mb-3"
+        disabled="@(isLoading || payingMultaId.HasValue)"
+        @onclick="LoadMultasAsync">
+    @(isLoading ? "Cargando..." : "Recargar")
+</button>
+
+@if (isLoading)
+{
+    <p><em>Cargando multas...</em></p>
+}
+else if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@errorMessage</div>
+}
+else if (multas is { Count: 0 })
+{
+    <div class="alert alert-info" role="status">No tienes multas registradas.</div>
+}
+else if (multas is not null)
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Multa</th>
+                    <th>Orden</th>
+                    <th>Tipo</th>
+                    <th>Observación</th>
+                    <th>Fecha</th>
+                    <th>Importe</th>
+                    <th>Estado</th>
+                    <th class="text-end">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var multa in multas)
+                {
+                    <tr>
+                        <td>@multa.Id</td>
+                        <td>@multa.OrdenId</td>
+                        <td>@GetTipo(multa.Tipo)</td>
+                        <td>@multa.Observacion</td>
+                        <td>@multa.CreadaEn.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                        <td>@multa.PrecioMulta.ToString("C")</td>
+                        <td>
+                            <span class="badge @(multa.Estado == EstadoMulta.Pagada ? "text-bg-success" : "text-bg-warning")">
+                                @GetEstado(multa.Estado)
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            @if (multa.Estado == EstadoMulta.Pendiente)
+                            {
+                                <button type="button"
+                                        class="btn btn-primary btn-sm"
+                                        disabled="@(payingMultaId == multa.Id)"
+                                        @onclick="() => PayAsync(multa.Id)">
+                                    @(payingMultaId == multa.Id ? "Procesando..." : "Pagar")
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Pagada</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<MultaResponse>? multas;
+    private string? errorMessage;
+    private bool isLoading = true;
+    private int? payingMultaId;
+
+    protected override Task OnInitializedAsync() => LoadMultasAsync();
+
+    private async Task LoadMultasAsync()
+    {
+        errorMessage = null;
+        multas = null;
+        isLoading = true;
+
+        if (AuthSession.Sub is not long userId || userId > int.MaxValue || userId < int.MinValue)
+        {
+            errorMessage = "No fue posible identificar al usuario autenticado.";
+            isLoading = false;
+            return;
+        }
+
+        try
+        {
+            var result = await MultasClient.ListarPorUsuarioAsync((int)userId);
+            multas = result.ToList();
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "No fue posible obtener las multas. Inténtalo de nuevo más tarde.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task PayAsync(int multaId)
+    {
+        if (payingMultaId.HasValue)
+        {
+            return;
+        }
+
+        errorMessage = null;
+        payingMultaId = multaId;
+
+        try
+        {
+            var multaPagada = await MultasClient.PagarAsync(multaId);
+            var index = multas?.FindIndex(multa => multa.Id == multaId) ?? -1;
+
+            if (index >= 0)
+            {
+                multas![index] = multaPagada;
+            }
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "No fue posible pagar la multa. Inténtalo de nuevo.";
+        }
+        finally
+        {
+            payingMultaId = null;
+        }
+    }
+
+    private static string GetTipo(TipoMulta tipo) => tipo switch
+    {
+        TipoMulta.Retraso => "Retraso",
+        TipoMulta.Danos => "Daños",
+        _ => tipo.ToString()
+    };
+
+    private static string GetEstado(EstadoMulta estado) => estado switch
+    {
+        EstadoMulta.Pendiente => "Pendiente",
+        EstadoMulta.Pagada => "Pagada",
+        _ => estado.ToString()
+    };
+}

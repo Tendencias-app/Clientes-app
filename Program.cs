@@ -12,7 +12,12 @@ builder.Services.AddScoped<AuthSession>();
 builder.Services.AddHttpClient<ILoginService, LoginService>((serviceProvider, client) =>
 {
     var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<ApiOptions>>().Value;
-    client.BaseAddress = new Uri(options.BaseUrl);
+    client.BaseAddress = new Uri(options.LoginBaseUrl);
+});
+builder.Services.AddHttpClient<IMultasClient, MultasClient>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<ApiOptions>>().Value;
+    client.BaseAddress = new Uri(options.MultasBaseUrl);
 });
 
 var app = builder.Build();
