@@ -1,4 +1,7 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
+@using CarsATTM_CustomerApp.Services
+@inject AuthSession AuthSession
 
 <div class="page">
     <div class="sidebar">
@@ -7,6 +10,10 @@
 
     <main>
         <div class="top-row px-4">
+            @if (AuthSession.IsAuthenticated && !string.IsNullOrWhiteSpace(AuthSession.Name))
+            {
+                <span class="user-name">@AuthSession.Name</span>
+            }
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
@@ -15,3 +22,20 @@
         </article>
     </main>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        AuthSession.Changed += OnAuthSessionChanged;
+    }
+
+    private void OnAuthSessionChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AuthSession.Changed -= OnAuthSessionChanged;
+    }
+}
