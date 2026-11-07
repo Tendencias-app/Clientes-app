@@ -51,7 +51,8 @@ public sealed class MultasClient(HttpClient httpClient) : IMultasClient
     private async Task<T> GetAsync<T>(string endpoint, CancellationToken cancellationToken)
     {
         using var response = await httpClient.GetAsync(endpoint, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+            return default!;
 
         return await response.Content.ReadFromJsonAsync<T>(JsonOptions, cancellationToken)
             ?? throw new JsonException("La API devolvió una respuesta vacía.");

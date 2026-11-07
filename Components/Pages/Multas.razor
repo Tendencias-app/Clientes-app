@@ -104,7 +104,7 @@ else if (multas is not null)
         try
         {
             var result = await MultasClient.ListarPorUsuarioAsync((int)userId);
-            multas = result.ToList();
+            multas = result != null ? result.ToList() : [];
         }
         catch (HttpRequestException)
         {
